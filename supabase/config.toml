@@ -1,0 +1,6 @@
+# Project ID from your Supabase project settings
+project_id = "your-project-id"
+
+[api]
+# API URL from your Supabase project settings
+endpoint = "your-project-url" 

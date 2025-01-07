@@ -73,7 +73,62 @@ We want a basic but complete chat interface :
 - a return button to go back to homepage where the swiping happens
 
 # Doc
-Use the YouTube Data API v3 to fetch user subscriptions.
+Use the YouTube Data API v3 to fetch user subscriptions. Please refer to the @doc_code_youtube_data_retrieval folder for the code
+
+
+## Database Schema :
+### Users Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `email`            | VARCHAR       | Unique, Not Null                           |
+| `password_hash`    | TEXT          | Nullable                                   |
+| `google_id`        | VARCHAR       | Nullable                                   |
+| `name`             | VARCHAR       | Not Null                                   |
+| `birth_date`       | DATE          | Not Null                                   |
+| `city`             | VARCHAR       | Nullable                                   |
+| `profile_picture`  | TEXT          | Nullable                                   |
+| `matching_param`   | INTEGER       | Default: 3, Not Null                       |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+
+### Subscriptions Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `user_id`          | UUID          | Foreign Key → `users.id`, Not Null         |
+| `channel_id`       | VARCHAR       | Not Null                                   |
+| `channel_name`     | VARCHAR       | Not Null                                   |
+| `category`         | VARCHAR       | Nullable                                   |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+
+### Matches Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `user_1_id`        | UUID          | Foreign Key → `users.id`, Not Null         |
+| `user_2_id`        | UUID          | Foreign Key → `users.id`, Not Null         |
+| `relevancy_score`  | INTEGER       | Not Null                                   |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+
+### Prematches Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `user_id`          | UUID          | Foreign Key → `users.id`, Not Null         |
+| `match_user_id`    | UUID          | Foreign Key → `users.id`, Not Null         |
+| `relevancy_score`  | INTEGER       | Not Null                                   |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+| `skipped`          | BOOLEAN       | Default: `FALSE`                           |
+
+### Chats Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `match_id`         | UUID          | Foreign Key → `matches.id`, Not Null       |
+| `sender_id`        | UUID          | Foreign Key → `users.id`, Not Null         |
+| `message`          | TEXT          | Not Null                                   |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+
 
 # Current file structure
 XXX
