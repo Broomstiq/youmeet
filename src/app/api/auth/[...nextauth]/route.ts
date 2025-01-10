@@ -29,34 +29,39 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Invalid credentials");
+          }
+
+          const { data: user, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("email", credentials.email)
+            .single();
+
+          if (error || !user || !user.password_hash) {
+            throw new Error("Invalid credentials");
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password_hash
+          );
+
+          if (!isValid) {
+            throw new Error("Invalid credentials");
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
         }
-
-        const { data: user, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("email", credentials.email)
-          .single();
-
-        if (error || !user || !user.password_hash) {
-          throw new Error("Invalid credentials");
-        }
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password_hash
-        );
-
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        };
       },
     }),
   ],
@@ -65,38 +70,10 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
       }
-      
-      if (account?.provider === "google" && user) {
-        // Check if user exists in database
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("*")
-          .eq("email", user.email!)
-          .single();
-
-        if (!existingUser) {
-          // Create new user if doesn't exist
-          const { data: newUser, error } = await supabase
-            .from("users")
-            .insert({
-              email: user.email!,
-              name: user.name!,
-              google_id: user.id,
-              birth_date: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          token.userId = newUser!.id;
-        } else {
-          token.userId = existingUser.id;
-        }
-      }
       return token;
     },
     async session({ session, token }) {
-      if (token.userId) {
+      if (session.user && token.userId) {
         session.user.id = token.userId as string;
       }
       return session;
@@ -108,7 +85,9 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 };
 

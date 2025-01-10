@@ -10,10 +10,10 @@ const supabase = createClient<Database>(
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name, birthDate } = await request.json();
+    const { email, password } = await request.json();
 
     // Validate input
-    if (!email || !password || !name || !birthDate) {
+    if (!email || !password) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -37,28 +37,40 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
+    // Create new user with explicit null values for nullable fields
     const { data: newUser, error } = await supabase
       .from('users')
       .insert({
         email,
         password_hash: hashedPassword,
-        name,
-        birth_date: birthDate,
+        name: null,               // explicitly set to null
+        birth_date: null,         // explicitly set to null
+        google_id: null,          // explicitly set to null
+        city: null,               // explicitly set to null
+        profile_picture: null,    // explicitly set to null
+        needs_onboarding: true,   // set default onboarding flag
+        matching_param: 3         // set default matching parameter
       })
-      .select('id, email, name, birth_date')
+      .select('id, email')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating user:', error);
+      return NextResponse.json(
+        { error: 'Error creating user' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      user: newUser,
-    });
-  } catch (error) {
-    console.error('Error creating user:', error);
     return NextResponse.json(
-      { error: 'Failed to create user' },
+      { user: newUser },
+      { status: 201 }
+    );
+
+  } catch (error) {
+    console.error('Error in signup:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

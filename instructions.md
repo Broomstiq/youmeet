@@ -9,8 +9,15 @@ When the user arrives on the landing page of the plaform he can :
 1. User can sign up (NextAuth.js)
     1.1 Sign up using Google account
     1.2 Sign up manually with an email adress (with email verification) and password
-    1.3 Once signed up the user should set up the account
-        1.3.1 input basic information : name, age (by birth date), city (optional), profile picture (optional)
+
+    after sign up, the user is redirected to the onboarding page
+
+    1.3 Once signed up the user should set up the account via an onboarding page
+        1.3.1 input basic information : 
+        - name, 
+        - age (by birth date), 
+        - city (optional), 
+        - profile picture (optional)
         1.3.2 link to youtube account for the initial data fetching of youtube subscription and and save link for later update of data
             User Authentication:
             Users authenticate using their Google accounts via OAuth2.
@@ -29,6 +36,10 @@ When the user arrives on the landing page of the plaform he can :
             subscriptions table: User subscriptions with fields user_id, channel_id, and category.
             Use tools like Prisma (ORM for Node.js) for easy database interaction.
         1.3.3 set the matching parameter : how many common subscription at least the user wants with his matches
+
+        all the data is stored in the database (users table) and the user is redirected to the dashboard
+        once the onboarding is done, the user can't access the onboarding page anymore
+        let's be carful about over redirections
 2. User can log in (NextAuth.js)
     2.1 user can log in using google account
     2.2 user can log in using email and password
@@ -84,12 +95,13 @@ Use the YouTube Data API v3 to fetch user subscriptions. Please refer to the @do
 | `email`            | VARCHAR       | Unique, Not Null                           |
 | `password_hash`    | TEXT          | Nullable                                   |
 | `google_id`        | VARCHAR       | Nullable                                   |
-| `name`             | VARCHAR       | Not Null                                   |
-| `birth_date`       | DATE          | Not Null                                   |
+| `name`             | VARCHAR       | Nullable                                   |
+| `birth_date`       | DATE          | Nullable                                   |
 | `city`             | VARCHAR       | Nullable                                   |
 | `profile_picture`  | TEXT          | Nullable                                   |
 | `matching_param`   | INTEGER       | Default: 3, Not Null                       |
 | `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+| `needs_onboarding` | BOOLEAN       | Default: `TRUE`, Not Null                 |
 
 ### Subscriptions Table
 | **Column**         | **Type**       | **Constraints**                            |

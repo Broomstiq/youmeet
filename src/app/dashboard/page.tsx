@@ -2,8 +2,24 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React from 'react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import {
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Box,
+  CircularProgress,
+  Stack,
+  Divider,
+} from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -13,36 +29,74 @@ export default function Dashboard() {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
     }
-  }, [status, router]);
+
+    // Check if user needs onboarding
+    const checkOnboardingStatus = async () => {
+      if (session?.user?.id) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('needs_onboarding')
+          .eq('id', session.user.id)
+          .single();
+
+        if (user?.needs_onboarding) {
+          router.push('/onboarding');
+        }
+      }
+    };
+
+    if (status === 'authenticated') {
+      checkOnboardingStatus();
+    }
+  }, [status, session, router]);
 
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <button
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4" component="h1">
+            Dashboard
+          </Typography>
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<LogoutIcon />}
             onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Sign Out
-          </button>
-        </div>
+          </Button>
+        </Box>
 
         {session?.user && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">User Information</h2>
-            <div className="bg-gray-50 p-4 rounded">
-              <p><strong>Name:</strong> {session.user.name}</p>
-              <p><strong>Email:</strong> {session.user.email}</p>
-              <p><strong>User ID:</strong> {session.user.id}</p>
-            </div>
-          </div>
+          <Stack spacing={2}>
+            <Typography variant="h5" component="h2">
+              User Information
+            </Typography>
+            <Divider />
+            <Paper variant="outlined" sx={{ p: 3, bgcolor: 'grey.50' }}>
+              <Stack spacing={2}>
+                <Typography>
+                  <strong>Name:</strong> {session.user.name}
+                </Typography>
+                <Typography>
+                  <strong>Email:</strong> {session.user.email}
+                </Typography>
+                <Typography>
+                  <strong>User ID:</strong> {session.user.id}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Stack>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Container>
   );
 } 

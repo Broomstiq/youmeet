@@ -10,8 +10,6 @@ export default function SignUp() {
     email: '',
     password: '',
     confirmPassword: '',
-    name: '',
-    birthDate: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,14 +27,8 @@ export default function SignUp() {
     setError('');
     setLoading(true);
 
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
     try {
+      // First create the account
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -45,8 +37,6 @@ export default function SignUp() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          name: formData.name,
-          birthDate: formData.birthDate,
         }),
       });
 
@@ -56,20 +46,24 @@ export default function SignUp() {
         throw new Error(data.error || 'Failed to create account');
       }
 
-      // Sign in the user after successful registration
-      const result = await signIn('credentials', {
+      console.log('Account created successfully, attempting sign in...');
+
+      // Then sign in
+      const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
 
-      if (result?.error) {
-        throw new Error(result.error);
+      console.log('Sign in result:', signInResult);
+
+      if (signInResult?.error) {
+        throw new Error(signInResult.error);
       }
 
-      // Redirect to dashboard on success
-      router.push('/dashboard');
+      router.push('/onboarding');
     } catch (err: any) {
+      console.error('Signup/SignIn error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -99,27 +93,6 @@ export default function SignUp() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                name="name"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Full name"
-                value={formData.name}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                name="birthDate"
-                type="date"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                value={formData.birthDate}
                 onChange={handleChange}
               />
             </div>
