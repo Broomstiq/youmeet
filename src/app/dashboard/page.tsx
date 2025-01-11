@@ -5,16 +5,17 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import {
   Container,
-  Paper,
-  Typography,
-  Button,
   Box,
   CircularProgress,
-  Stack,
-  Divider,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
 } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { createClient } from '@supabase/supabase-js';
+import SwipeContainer from '../../components/SwipeContainer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,7 +31,6 @@ export default function Dashboard() {
       router.push('/auth/signin');
     }
 
-    // Check if user needs onboarding
     const checkOnboardingStatus = async () => {
       if (session?.user?.id) {
         const { data: user } = await supabase
@@ -59,44 +59,27 @@ export default function Dashboard() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" component="h1">
-            Dashboard
+    <Box>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            YouMeet
           </Typography>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<LogoutIcon />}
+          <IconButton color="inherit" onClick={() => router.push('/settings')}>
+            <SettingsIcon />
+          </IconButton>
+          <IconButton
+            color="inherit"
             onClick={() => signOut({ callbackUrl: '/auth/signin' })}
           >
-            Sign Out
-          </Button>
-        </Box>
+            <LogoutIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
 
-        {session?.user && (
-          <Stack spacing={2}>
-            <Typography variant="h5" component="h2">
-              User Information
-            </Typography>
-            <Divider />
-            <Paper variant="outlined" sx={{ p: 3, bgcolor: 'grey.50' }}>
-              <Stack spacing={2}>
-                <Typography>
-                  <strong>Name:</strong> {session.user.name}
-                </Typography>
-                <Typography>
-                  <strong>Email:</strong> {session.user.email}
-                </Typography>
-                <Typography>
-                  <strong>User ID:</strong> {session.user.id}
-                </Typography>
-              </Stack>
-            </Paper>
-          </Stack>
-        )}
-      </Paper>
-    </Container>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        {session?.user && <SwipeContainer userId={session.user.id} />}
+      </Container>
+    </Box>
   );
 } 

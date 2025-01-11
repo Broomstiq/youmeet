@@ -6,15 +6,16 @@
     "start": "next start",
     "start-workers": "tsx src/scripts/start-workers.ts",
     "seed-test-data": "tsx src/scripts/seed-test-data.ts",
-    "seed:analytics": "tsx src/scripts/seed-analytics-data.ts"
+    "seed:analytics": "tsx src/scripts/seed-analytics-data.ts",
+    "seed:prematches": "tsx src/scripts/seed-user-prematches.ts"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.7.4",
-    "@emotion/react": "^11.11.4",
+    "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.12",
-    "@mui/material": "^5.15.12",
-    "@supabase/supabase-js": "^2.47.11",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.0",
+    "@supabase/supabase-js": "^2.21.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.34.8",
     "dotenv": "^16.3.1",
@@ -22,7 +23,10 @@
     "framer-motion": "^11.17.0",
     "googleapis": "^126.0.1",
     "ioredis": "^5.4.2",
-    "next-auth": "^4.24.11",
+    "next": "^14.0.0",
+    "next-auth": "^4.22.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "recharts": "^2.15.0"
   },
   "devDependencies": {
