@@ -29,8 +29,12 @@ export async function GET() {
         .from('prematches')
         .select(`
           *,
-          users!prematches_user_id_fkey (name),
-          users!prematches_match_user_id_fkey (name)
+          user:users!prematches_user_id_fkey (
+            name
+          ),
+          match:users!prematches_match_user_id_fkey (
+            name
+          )
         `)
         .eq('skipped', false),
       supabase
@@ -59,9 +63,9 @@ export async function GET() {
       match_user_id: prematch.match_user_id,
       relevancy_score: prematch.relevancy_score,
       created_at: prematch.created_at,
-      user_name: prematch.users?.name,
-      match_user_name: prematch.users?.name,
-      commonSubscriptions: [], // You would need to calculate this based on user subscriptions
+      user_name: prematch.user?.name || 'Unknown',
+      match_user_name: prematch.match?.name || 'Unknown',
+      commonSubscriptions: [],
     })) || [];
 
     // Format analytics data
@@ -109,12 +113,6 @@ export async function GET() {
         : [],
       matching_param_distribution: currentAnalytics.matching_param_distribution || {},
     } : null;
-
-    // Debug logs
-    console.log('Users:', processedUsers);
-    console.log('Prematches:', processedPrematches);
-    console.log('Current Analytics:', formattedCurrent);
-    console.log('Historical Analytics:', formattedHistorical);
 
     // Debug logs for counts
     console.log('Counts:', {

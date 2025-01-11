@@ -14,6 +14,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  TablePagination,
+  Paper,
 } from '@mui/material';
 import {
   LineChart,
@@ -114,6 +116,14 @@ export default function PrematchTestPage() {
   const [data, setData] = useState<TestData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Add the same pagination constants and state
+  const DEFAULT_PAGE_SIZE = 10;
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+  const [userPage, setUserPage] = useState(0);
+  const [userPageSize, setUserPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [prematchPage, setPrematchPage] = useState(0);
+  const [prematchPageSize, setPrematchPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const fetchData = async () => {
     setLoading(true);
@@ -142,6 +152,61 @@ export default function PrematchTestPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Add the same pagination handlers
+  const handleUserPageChange = (event: unknown, newPage: number) => {
+    console.log('User page change:', { currentPage: userPage, newPage });
+    setUserPage(newPage);
+  };
+
+  const handleUserPageSizeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setUserPageSize(parseInt(event.target.value, 10));
+    setUserPage(0);
+  };
+
+  const handlePrematchPageChange = (event: unknown, newPage: number) => {
+    console.log('Prematch page change:', { currentPage: prematchPage, newPage });
+    setPrematchPage(newPage);
+  };
+
+  const handlePrematchPageSizeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setPrematchPageSize(parseInt(event.target.value, 10));
+    setPrematchPage(0);
+  };
+
+  // Add getPaginatedUsers function
+  const getPaginatedUsers = () => {
+    if (!data?.users) return [];
+    const start = userPage * userPageSize;
+    const end = Math.min(start + userPageSize, data.users.length);
+    const paginatedData = data.users.slice(start, end);
+    console.log('Users pagination:', { 
+      start, 
+      end, 
+      pageSize: userPageSize, 
+      resultCount: paginatedData.length 
+    });
+    return paginatedData;
+  };
+
+  // Add getPaginatedPrematches function
+  const getPaginatedPrematches = () => {
+    if (!data?.prematches) return [];
+    const start = prematchPage * prematchPageSize;
+    const end = Math.min(start + prematchPageSize, data.prematches.length);
+    const paginatedData = data.prematches.slice(start, end);
+    console.log('Prematches pagination:', { 
+      start, 
+      end, 
+      pageSize: prematchPageSize, 
+      resultCount: paginatedData.length 
+    });
+    return paginatedData;
+  };
 
   // Add a helper function to check if analytics data exists
   const hasAnalytics = (data: TestData | null): boolean => {
@@ -229,95 +294,86 @@ export default function PrematchTestPage() {
           </Card>
 
           {/* Users Section */}
-          <Typography variant="h6" gutterBottom>
-            Users ({data.users.length})
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            {data.users.map((user) => (
-              <Grid item xs={12} md={6} key={user.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6">{user.name}</Typography>
-                    <Typography color="text.secondary" gutterBottom>
-                      ID: {user.id}
-                    </Typography>
-                    <Typography>
-                      Matching Parameter: {user.matching_param}
-                    </Typography>
-                    <Typography>
-                      Subscriptions: {user.subscriptionCount}
-                    </Typography>
-                    {user.subscriptions.length > 0 && (
-                      <Box mt={1}>
-                        <Typography variant="subtitle2">
-                          Sample Subscriptions:
+          <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Users ({data.users?.length || 0})
+                </Typography>
+                <Grid container spacing={2}>
+                  {getPaginatedUsers().map((user: User) => (
+                    <Grid item xs={12} md={6} key={user.id}>
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1">{user.name || 'Unnamed User'}</Typography>
+                        <Typography variant="body2">ID: {user.id}</Typography>
+                        <Typography variant="body2">
+                          Matching Parameter: {user.matching_param}
                         </Typography>
-                        <Box display="flex" gap={1} flexWrap="wrap">
-                          {user.subscriptions.slice(0, 3).map((sub) => (
-                            <Chip
-                              key={sub.channel_id}
-                              label={sub.channel_name}
-                              size="small"
-                            />
-                          ))}
-                          {user.subscriptions.length > 3 && (
-                            <Chip
-                              label={`+${user.subscriptions.length - 3} more`}
-                              size="small"
-                              variant="outlined"
-                            />
-                          )}
-                        </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                        <Typography variant="body2">
+                          Subscriptions: {user.subscriptionCount}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+              {data.users?.length > 0 && (
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                  <TablePagination
+                    component="div"
+                    count={data.users.length}
+                    page={userPage}
+                    onPageChange={handleUserPageChange}
+                    rowsPerPage={userPageSize}
+                    onRowsPerPageChange={handleUserPageSizeChange}
+                    rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+                    labelRowsPerPage="Users per page"
+                  />
+                </Box>
+              )}
+            </Card>
 
-          {/* Prematches Section */}
-          <Typography variant="h6" gutterBottom>
-            Prematches ({data.prematches.length})
-          </Typography>
-          <Grid container spacing={2}>
-            {data.prematches.map((prematch) => (
-              <Grid item xs={12} key={prematch.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6">
-                      {prematch.user_name} ↔ {prematch.match_user_name}
-                    </Typography>
-                    <Typography color="text.secondary" gutterBottom>
-                      IDs: {prematch.user_id} ↔ {prematch.match_user_id}
-                    </Typography>
-                    <Typography>
-                      Relevancy Score: {prematch.relevancy_score}
-                    </Typography>
-                    <Typography color="text.secondary">
-                      Created: {new Date(prematch.created_at).toLocaleString()}
-                    </Typography>
-                    {prematch.commonSubscriptions && prematch.commonSubscriptions.length > 0 && (
-                      <Box mt={1}>
-                        <Typography variant="subtitle2">
-                          Common Subscriptions:
+            {/* Prematches Section */}
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Prematches ({data.prematches?.length || 0})
+                </Typography>
+                <Grid container spacing={2}>
+                  {getPaginatedPrematches().map((prematch: Prematch) => (
+                    <Grid item xs={12} key={prematch.id}>
+                      <Paper sx={{ p: 2 }}>
+                        <Typography variant="subtitle1">
+                          Match: {prematch.user_name || 'Unknown'} ↔ {prematch.match_user_name || 'Unknown'}
                         </Typography>
-                        <Box display="flex" gap={1} flexWrap="wrap">
-                          {prematch.commonSubscriptions.map((sub) => (
-                            <Chip
-                              key={sub.channel_id}
-                              label={sub.channel_name}
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                        <Typography variant="body2">
+                          Score: {prematch.relevancy_score}
+                        </Typography>
+                        <Typography variant="body2">
+                          Created: {new Date(prematch.created_at).toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          IDs: {prematch.user_id} ↔ {prematch.match_user_id}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+              {data.prematches?.length > 0 && (
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                  <TablePagination
+                    component="div"
+                    count={data.prematches.length}
+                    page={prematchPage}
+                    onPageChange={handlePrematchPageChange}
+                    rowsPerPage={prematchPageSize}
+                    onRowsPerPageChange={handlePrematchPageSizeChange}
+                    rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+                    labelRowsPerPage="Matches per page"
+                  />
+                </Box>
+              )}
+            </Card>
 
           {/* Analytics Dashboard - Updated with more detailed metrics */}
           {data && hasAnalytics(data) ? (
