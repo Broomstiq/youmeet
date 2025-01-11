@@ -1,7 +1,7 @@
 # Project overview
 You are building a dating platform based where users match according to an algorithm based on youtube subscriptions, they can then chat
 
-You will be using nextJs 14, Chakra UI, Tailwind CSS, NextAuth.js, redis, Supabase Realtime, Supabase BullMQ and typescript
+You will be using nextJs 14, MUI, Tailwind CSS, NextAuth.js, redis, Supabase Realtime, Supabase, BullMQ and typescript
 
 # Core functionlities
 ## I. User authentification 
@@ -141,6 +141,92 @@ Use the YouTube Data API v3 to fetch user subscriptions. Please refer to the @do
 | `message`          | TEXT          | Not Null                                   |
 | `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
 
+### Analytics_Snapshots Table
+| **Column**                    | **Type**       | **Constraints**                            |
+|------------------------------|----------------|--------------------------------------------|
+| `id`                         | UUID           | Primary Key, Auto-generated                |
+| `timestamp`                  | TIMESTAMP      | Default: `NOW()`, With Time Zone          |
+| `total_users`                | INTEGER        | Not Null                                  |
+| `active_users_24h`           | INTEGER        | Not Null                                  |
+| `avg_subscriptions_per_user` | FLOAT          | Not Null                                  |
+| `total_prematches`           | INTEGER        | Not Null                                  |
+| `avg_prematches_per_user`    | FLOAT          | Not Null                                  |
+| `avg_relevancy_score`        | FLOAT          | Not Null                                  |
+| `prematch_distribution`      | JSONB          | Not Null                                  |
+| `calculation_time_ms`        | INTEGER        | Not Null                                  |
+| `cache_hit_ratio`           | FLOAT          | Not Null                                  |
+| `queue_length`              | INTEGER        | Not Null                                  |
+| `successful_matches_24h`     | INTEGER        | Not Null                                  |
+| `skip_ratio_24h`            | FLOAT          | Not Null                                  |
+| `popular_channels`          | JSONB          | Not Null                                  |
+| `matching_param_distribution`| JSONB          | Not Null                                  |
+
+Notes on the Analytics_Snapshots table:
+- `prematch_distribution`: JSON object storing the distribution of relevancy scores
+- `popular_channels`: JSON array of objects containing channel statistics
+- `matching_param_distribution`: JSON object storing the distribution of user matching parameters
+- An index on the timestamp column enables efficient time-series queries
 
 # Current file structure
-XXX
+├── doc_code_youtube_data_retrieval
+│   ├── server.ts
+│   └── youtube-service.ts
+├── instruction-prematch-deployment.md
+├── instructions.md
+├── next-env.d.ts
+├── package-lock.json
+├── package.json
+├── src
+│   ├── app
+│   │   ├── api
+│   │   │   ├── auth
+│   │   │   │   ├── [...nextauth]
+│   │   │   │   └── signup
+│   │   │   ├── create-test-user
+│   │   │   │   └── route.ts
+│   │   │   ├── prematch
+│   │   │   │   ├── calculate
+│   │   │   │   ├── check
+│   │   │   │   └── test
+│   │   │   └── user
+│   │   │       ├── onboarding
+│   │   │       ├── youtube-auth-url
+│   │   │       └── youtube-connect
+│   │   ├── auth
+│   │   │   ├── signin
+│   │   │   │   └── page.tsx
+│   │   │   └── signup
+│   │   │       └── page.tsx
+│   │   ├── callback
+│   │   │   └── route.ts
+│   │   ├── dashboard
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── onboarding
+│   │   │   ├── OnboardingClient.tsx
+│   │   │   └── page.tsx
+│   │   ├── providers.tsx
+│   │   └── test
+│   │       └── prematch
+│   │           └── page.tsx
+│   ├── lib
+│   │   ├── database.types.ts
+│   │   ├── supabase.ts
+│   │   ├── types.ts
+│   │   └── youtube-service.ts
+│   ├── middleware.ts
+│   ├── queues
+│   │   ├── config.ts
+│   │   ├── prematch.queue.ts
+│   │   └── prematch.worker.ts
+│   ├── scripts
+│   │   ├── seed-test-data.ts
+│   │   └── start-workers.ts
+│   ├── types
+│   │   └── next-auth.d.ts
+│   └── youtube-subscriptions.ts
+├── supabase
+│   ├── config.toml
+│   └── migrations
+│       └── 0001_initial_schema.sql
+└── tsconfig.json
