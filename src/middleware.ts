@@ -9,9 +9,13 @@ export async function middleware(request: NextRequest) {
   // Public paths that don't require authentication
   const isPublicPath = path === '/auth/signin' || 
                       path === '/auth/signup' || 
+                      path === '/auth/forgot-password' ||
+                      path === '/auth/reset-password' ||
                       path.startsWith('/api/auth/') ||
-                      path.startsWith('/api/prematch/test') || // Allow test endpoint
-                      path.startsWith('/api/prematch/check') || // Allow check endpoint
+                      path.startsWith('/api/user/reset-password') ||  // Allow password reset
+                      path.startsWith('/api/user/update-password') || // Allow password update
+                      path.startsWith('/api/prematch/test') || 
+                      path.startsWith('/api/prematch/check') || 
                       path.startsWith('/api/prematch/calculate') || 
                       path.startsWith('/callback');
 

@@ -167,6 +167,22 @@ Notes on the Analytics_Snapshots table:
 - `matching_param_distribution`: JSON object storing the distribution of user matching parameters
 - An index on the timestamp column enables efficient time-series queries
 
+### Password_Resets Table
+| **Column**         | **Type**       | **Constraints**                            |
+|---------------------|----------------|--------------------------------------------|
+| `id`               | UUID          | Primary Key, Auto-generated                |
+| `user_id`          | UUID          | Foreign Key → `users.id`, Not Null         |
+| `token`            | TEXT          | Not Null                                   |
+| `expires_at`       | TIMESTAMP     | Not Null                                   |
+| `used`             | BOOLEAN       | Default: FALSE                             |
+| `created_at`       | TIMESTAMP     | Default: `NOW()`                           |
+
+Notes on the Password_Resets table:
+- `token` is a secure random string used for password reset verification
+- `expires_at` ensures tokens are only valid for 24 hours
+- `used` prevents tokens from being used multiple times
+- Indexes on `token` and `user_id` for efficient lookups
+
 # Current file structure
 ├── doc_code_youtube_data_retrieval
 │   ├── server.ts
