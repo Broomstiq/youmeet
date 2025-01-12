@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from '@/auth';
 import { createClient } from '@supabase/supabase-js';
-import { authOptions } from '../api/auth/[...nextauth]/route';
 import { YouTubeService } from '../../lib/youtube-service';
 
 const supabase = createClient(
@@ -11,7 +10,8 @@ const supabase = createClient(
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    
     if (!session?.user?.id) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
     }

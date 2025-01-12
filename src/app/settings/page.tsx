@@ -189,6 +189,9 @@ export default function Settings() {
                 <Typography color="text.secondary">
                   {user.city || 'No city set'}
                 </Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  Minimum common subscriptions: {user.matching_param}
+                </Typography>
               </Box>
               <IconButton onClick={() => setEditOpen(true)} sx={{ ml: 2 }}>
                 <EditIcon />
@@ -234,8 +237,16 @@ export default function Settings() {
                 label="Minimum Common Subscriptions"
                 type="number"
                 value={editData.matching_param}
-                onChange={(e) => setEditData(prev => ({ ...prev, matching_param: parseInt(e.target.value) }))}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value >= 1) {
+                    setEditData(prev => ({ ...prev, matching_param: value }));
+                  }
+                }}
                 inputProps={{ min: 1 }}
+                helperText="Minimum number of YouTube subscriptions you want to have in common with matches"
+                fullWidth
+                required
               />
             </Box>
           </DialogContent>

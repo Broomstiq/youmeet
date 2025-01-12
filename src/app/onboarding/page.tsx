@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
 import { createClient } from '@supabase/supabase-js';
-import { authOptions } from '../api/auth/[...nextauth]/route';
+import { auth } from '@/auth';
 import OnboardingClient from './OnboardingClient';
 import { Suspense } from 'react';
 import { CircularProgress, Box } from '@mui/material';
@@ -20,7 +19,7 @@ interface PageProps {
 }
 
 async function OnboardingContent({ searchParams }: PageProps) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session?.user?.id) {
     redirect('/auth/signin');
