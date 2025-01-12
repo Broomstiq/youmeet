@@ -52,4 +52,4 @@ export default function ChatPage() {
       <MessageInput onSend={sendMessage} />
     </Box>
   )
-} 
+}

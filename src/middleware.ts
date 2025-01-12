@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
                       path === '/auth/signup' || 
                       path === '/auth/forgot-password' ||
                       path === '/auth/reset-password' ||
+                      path === '/youmeet_logo.svg' ||
                       path.startsWith('/api/auth/') ||
                       path.startsWith('/api/user/reset-password') ||  // Allow password reset
                       path.startsWith('/api/user/update-password') || // Allow password update

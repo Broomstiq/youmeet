@@ -19,11 +19,14 @@ import {
   ListItemText,
   Button,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Paper
 } from '@mui/material'
+import { ThemeProvider } from '@mui/material/styles'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import InfoIcon from '@mui/icons-material/Info'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { theme } from '../../styles/theme'
 
 interface ChatHeaderProps {
   matchId: string
@@ -182,12 +185,12 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
   }
 
   return (
-    <>
-      <AppBar position="static">
+    <ThemeProvider theme={theme}>
+      <AppBar position="static" color="default" elevation={1}>
         <Toolbar>
           <IconButton
             edge="start"
-            color="inherit"
+            color="primary"
             onClick={() => router.push('/chat')}
           >
             <ArrowBackIcon />
@@ -197,20 +200,20 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
             <Avatar
               src={partnerInfo?.profile_picture}
               alt={partnerInfo?.name || 'User'}
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, width: 40, height: 40 }}
             >
               {!partnerInfo?.profile_picture && (partnerInfo?.name?.[0]?.toUpperCase() || '?')}
             </Avatar>
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{ fontFamily: theme.typography.h1.fontFamily, color: 'secondary.main' }}>
               {partnerInfo?.name || 'Loading...'}
             </Typography>
           </Box>
 
-          <IconButton color="inherit" onClick={() => setShowProfile(true)}>
+          <IconButton color="primary" onClick={() => setShowProfile(true)}>
             <InfoIcon />
           </IconButton>
           <IconButton 
-            color="inherit" 
+            color="primary" 
             onClick={() => setShowDeleteConfirm(true)}
             sx={{ ml: 1 }}
           >
@@ -225,41 +228,43 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Profile Details</DialogTitle>
+        <DialogTitle sx={{ fontFamily: theme.typography.h1.fontFamily, color: 'secondary.main' }}>Profile Details</DialogTitle>
         <DialogContent>
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Avatar
-              src={partnerInfo?.profile_picture}
-              alt={partnerInfo?.name || 'User'}
-              sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }}
-            >
-              {!partnerInfo?.profile_picture && (partnerInfo?.name?.[0]?.toUpperCase() || '?')}
-            </Avatar>
-            <Typography variant="h5" gutterBottom>
-              {partnerInfo?.name}
-            </Typography>
-            {partnerInfo?.birth_date && (
-              <Typography variant="body1" color="text.secondary" gutterBottom>
-                {calculateAge(partnerInfo.birth_date)} years old
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
+              <Avatar
+                src={partnerInfo?.profile_picture}
+                alt={partnerInfo?.name || 'User'}
+                sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }}
+              >
+                {!partnerInfo?.profile_picture && (partnerInfo?.name?.[0]?.toUpperCase() || '?')}
+              </Avatar>
+              <Typography variant="h5" gutterBottom sx={{ fontFamily: theme.typography.h1.fontFamily, color: 'secondary.main' }}>
+                {partnerInfo?.name}
               </Typography>
-            )}
-            {partnerInfo?.city && (
-              <Typography variant="body1" color="text.secondary" gutterBottom>
-                {partnerInfo.city}
-              </Typography>
-            )}
-          </Box>
+              {partnerInfo?.birth_date && (
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  {calculateAge(partnerInfo.birth_date)} years old
+                </Typography>
+              )}
+              {partnerInfo?.city && (
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                  {partnerInfo.city}
+                </Typography>
+              )}
+            </Box>
 
-          <Typography variant="h6" gutterBottom>
-            Common Subscriptions ({commonSubs.length})
-          </Typography>
-          <List>
-            {commonSubs.map((sub, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={sub.channel_name} />
-              </ListItem>
-            ))}
-          </List>
+            <Typography variant="h6" gutterBottom sx={{ fontFamily: theme.typography.h1.fontFamily, color: 'secondary.main' }}>
+              Common Subscriptions ({commonSubs.length})
+            </Typography>
+            <List>
+              {commonSubs.map((sub, index) => (
+                <ListItem key={index}>
+                  <ListItemText primary={sub.channel_name} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
         </DialogContent>
       </Dialog>
 
@@ -267,7 +272,7 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
       >
-        <DialogTitle>Delete Match</DialogTitle>
+        <DialogTitle sx={{ fontFamily: theme.typography.h1.fontFamily, color: 'secondary.main' }}>Delete Match</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete this match? This will permanently remove all messages and cannot be undone.
@@ -286,6 +291,7 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </ThemeProvider>
   )
-} 
+}
+

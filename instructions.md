@@ -1,7 +1,7 @@
 # Project overview
 You are building a dating platform based where users match according to an algorithm based on youtube subscriptions, they can then chat
 
-You will be using nextJs 14, MUI, Tailwind CSS, NextAuth.js, redis, Supabase Realtime, Supabase, BullMQ and typescript
+You will be using nextJs 14, MUI, Tailwind CSS, NextAuth.js, redis (via upstah), Supabase Realtime, Supabase, BullMQ, sendgrid and typescript
 
 # Core functionlities
 ## I. User authentification 
@@ -192,9 +192,13 @@ Notes on the Password_Resets table:
 ├── next-env.d.ts
 ├── package-lock.json
 ├── package.json
+├── public
+│   └── default-profile.jpg
 ├── src
 │   ├── app
 │   │   ├── api
+│   │   │   ├── analytics
+│   │   │   │   └── calculate
 │   │   │   ├── auth
 │   │   │   │   ├── [...nextauth]
 │   │   │   │   └── signup
@@ -204,17 +208,35 @@ Notes on the Password_Resets table:
 │   │   │   │   ├── calculate
 │   │   │   │   ├── check
 │   │   │   │   └── test
+│   │   │   ├── queues
+│   │   │   │   └── status
+│   │   │   ├── test
+│   │   │   │   └── create-match
 │   │   │   └── user
 │   │   │       ├── onboarding
+│   │   │       ├── reset-password
+│   │   │       ├── update-password
 │   │   │       ├── youtube-auth-url
 │   │   │       └── youtube-connect
 │   │   ├── auth
+│   │   │   ├── forgot-password
+│   │   │   │   └── page.tsx
+│   │   │   ├── reset-password
+│   │   │   │   └── page.tsx
 │   │   │   ├── signin
 │   │   │   │   └── page.tsx
 │   │   │   └── signup
 │   │   │       └── page.tsx
 │   │   ├── callback
 │   │   │   └── route.ts
+│   │   ├── chat
+│   │   │   ├── [matchId]
+│   │   │   │   └── page.tsx
+│   │   │   ├── components
+│   │   │   │   ├── ChatHeader.tsx
+│   │   │   │   ├── MessageInput.tsx
+│   │   │   │   └── MessageList.tsx
+│   │   │   └── page.tsx
 │   │   ├── dashboard
 │   │   │   └── page.tsx
 │   │   ├── layout.tsx
@@ -222,21 +244,38 @@ Notes on the Password_Resets table:
 │   │   │   ├── OnboardingClient.tsx
 │   │   │   └── page.tsx
 │   │   ├── providers.tsx
+│   │   ├── settings
+│   │   │   └── page.tsx
 │   │   └── test
-│   │       └── prematch
+│   │       ├── chat
+│   │       │   └── page.tsx
+│   │       ├── prematch
+│   │       │   └── page.tsx
+│   │       └── queues
 │   │           └── page.tsx
+│   ├── components
+│   │   ├── MatchCard.tsx
+│   │   └── SwipeContainer.tsx
+│   ├── hooks
+│   │   └── useChat.ts
 │   ├── lib
 │   │   ├── database.types.ts
+│   │   ├── email-service.ts
+│   │   ├── redis.ts
 │   │   ├── supabase.ts
 │   │   ├── types.ts
 │   │   └── youtube-service.ts
 │   ├── middleware.ts
 │   ├── queues
+│   │   ├── analytics.queue.ts
+│   │   ├── analytics.worker.ts
 │   │   ├── config.ts
 │   │   ├── prematch.queue.ts
 │   │   └── prematch.worker.ts
 │   ├── scripts
+│   │   ├── seed-analytics-data.ts
 │   │   ├── seed-test-data.ts
+│   │   ├── seed-user-prematches.ts
 │   │   └── start-workers.ts
 │   ├── types
 │   │   └── next-auth.d.ts
@@ -244,5 +283,8 @@ Notes on the Password_Resets table:
 ├── supabase
 │   ├── config.toml
 │   └── migrations
-│       └── 0001_initial_schema.sql
+│       ├── 0001_initial_schema.sql
+│       ├── 0003_common_subscriptions.sql
+│       ├── 0004_password_resets.sql
+│       └── xxxx_analytics_schema.sql
 └── tsconfig.json

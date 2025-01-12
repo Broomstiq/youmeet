@@ -3,7 +3,21 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { signIn } from 'next-auth/react';
+import { 
+  Button, 
+  TextField, 
+  Typography, 
+  Container, 
+  Box, 
+  CssBaseline,
+  Paper,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from '../../styles/theme';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -28,7 +42,6 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      // First create the account
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -48,14 +61,11 @@ export default function SignUp() {
 
       console.log('Account created successfully, attempting sign in...');
 
-      // Then sign in
       const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
-
-      console.log('Sign in result:', signInResult);
 
       if (signInResult?.error) {
         throw new Error(signInResult.error);
@@ -71,72 +81,96 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-        </div>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+    <ThemeProvider theme={theme}>
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Paper elevation={3} sx={{ mt: 8, p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <Image
+              src="/youmeet_logo.svg"
+              alt="YouMeet Logo"
+              width={200}
+              height={200}
+              priority
+            />
+            <Typography 
+              component="h1" 
+              variant="h4" 
+              sx={{ 
+                mt: 2,
+                color: 'secondary.main',
+                fontFamily: theme.typography.h1.fontFamily,
+              }}
             >
-              {loading ? 'Creating account...' : 'Sign up'}
-            </button>
-          </div>
-        </form>
-
-        <div className="text-sm text-center">
-          <Link href="/auth/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Already have an account? Sign in
-          </Link>
-        </div>
-      </div>
-    </div>
+              YouMeet
+            </Typography>
+          </Box>
+          {error && (
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={formData.email}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              id="confirmPassword"
+              autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Create Account'
+              )}
+            </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Link href="/auth/signin" passHref>
+                <Typography variant="body2" color="primary" sx={{ cursor: 'pointer' }}>
+                  Already have an account? Sign in
+                </Typography>
+              </Link>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
-} 
+}
+

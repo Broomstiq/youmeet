@@ -17,9 +17,13 @@ import {
   Box,
   Container,
   CircularProgress,
-  Badge
+  Badge,
+  Paper
 } from '@mui/material'
+import { ThemeProvider } from '@mui/material/styles'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import Image from 'next/image'
+import { theme } from '../styles/theme'
 
 interface ChatPreview {
   match_id: string
@@ -164,112 +168,199 @@ export default function ChatDashboard() {
 
   if (error) {
     return (
-      <Box>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton 
-              edge="start" 
-              color="inherit" 
-              onClick={() => router.push('/dashboard')}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-              Chats
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth="md" sx={{ mt: 2 }}>
-          <Typography color="error" align="center">
-            {error}
-          </Typography>
-        </Container>
-      </Box>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+          <AppBar position="static" color="default" elevation={1}>
+            <Toolbar>
+              <IconButton 
+                edge="start" 
+                color="primary" 
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, ml: 2 }}>
+                <Image
+                  src="/youmeet_logo.svg"
+                  alt="YouMeet Logo"
+                  width={40}
+                  height={40}
+                  priority
+                />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    ml: 2,
+                    fontFamily: theme.typography.h1.fontFamily,
+                    color: 'secondary.main',
+                  }}
+                >
+                  Chats
+                </Typography>
+              </Box>
+            </Toolbar>
+          </AppBar>
+          <Container maxWidth="md" sx={{ mt: 4 }}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography color="error" align="center">
+                {error}
+              </Typography>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
     )
   }
 
   if (isLoading) {
     return (
-      <Box>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton 
-              edge="start" 
-              color="inherit" 
-              onClick={() => router.push('/dashboard')}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-              Chats
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth="md" sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress />
-        </Container>
-      </Box>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+          <AppBar position="static" color="default" elevation={1}>
+            <Toolbar>
+              <IconButton 
+                edge="start" 
+                color="primary" 
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, ml: 2 }}>
+                <Image
+                  src="/youmeet_logo.svg"
+                  alt="YouMeet Logo"
+                  width={40}
+                  height={40}
+                  priority
+                />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    ml: 2,
+                    fontFamily: theme.typography.h1.fontFamily,
+                    color: 'secondary.main',
+                  }}
+                >
+                  Chats
+                </Typography>
+              </Box>
+            </Toolbar>
+          </AppBar>
+          <Container maxWidth="md" sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress sx={{ color: theme.palette.primary.main }} />
+          </Container>
+        </Box>
+      </ThemeProvider>
     )
   }
 
   return (
-    <Box>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton 
-            edge="start" 
-            color="inherit" 
-            onClick={() => router.push('/dashboard')}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ ml: 2 }}>
-            Chats
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="md" sx={{ mt: 2 }}>
-        <List>
-          {chats.map((chat) => (
-            <ListItem 
-              key={chat.match_id}
-              button
-              onClick={() => router.push(`/chat/${chat.match_id}`)}
-              divider
+    <ThemeProvider theme={theme}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <AppBar position="static" color="default" elevation={1}>
+          <Toolbar>
+            <IconButton 
+              edge="start" 
+              color="primary" 
+              onClick={() => router.push('/dashboard')}
             >
-              <ListItemAvatar>
-                <Badge badgeContent={chat.unread_count} color="error">
-                  <Avatar 
-                    src={chat.partner_profile_picture}
-                    alt={chat.partner_name}
-                  >
-                    {!chat.partner_profile_picture && (chat.partner_name[0]?.toUpperCase() || '?')}
-                  </Avatar>
-                </Badge>
-              </ListItemAvatar>
-              <ListItemText
-                primary={chat.partner_name}
-                secondary={
-                  chat.last_message 
-                    ? `${chat.last_message.substring(0, 50)}${chat.last_message.length > 50 ? '...' : ''}`
-                    : 'No messages yet'
-                }
+              <ArrowBackIcon />
+            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, ml: 2 }}>
+              <Image
+                src="/youmeet_logo.svg"
+                alt="YouMeet Logo"
+                width={40}
+                height={40}
+                priority
               />
-              {chat.last_message_time && (
-                <Typography variant="caption" color="text.secondary">
-                  {new Date(chat.last_message_time).toLocaleDateString()}
-                </Typography>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  ml: 2,
+                  fontFamily: theme.typography.h1.fontFamily,
+                  color: 'secondary.main',
+                }}
+              >
+                Chats
+              </Typography>
+            </Box>
+          </Toolbar>
+        </AppBar>
+
+        <Container maxWidth="md" sx={{ mt: 4 }}>
+          <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <List>
+              {chats.map((chat) => (
+                <ListItem 
+                  key={chat.match_id}
+                  button
+                  onClick={() => router.push(`/chat/${chat.match_id}`)}
+                  divider
+                  sx={{
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Badge 
+                      badgeContent={chat.unread_count} 
+                      color="primary"
+                      sx={{
+                        '& .MuiBadge-badge': {
+                          bgcolor: theme.palette.primary.main,
+                          color: theme.palette.primary.contrastText,
+                        },
+                      }}
+                    >
+                      <Avatar 
+                        src={chat.partner_profile_picture}
+                        alt={chat.partner_name}
+                        sx={{ width: 50, height: 50 }}
+                      >
+                        {!chat.partner_profile_picture && (chat.partner_name[0]?.toUpperCase() || '?')}
+                      </Avatar>
+                    </Badge>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        {chat.partner_name}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography variant="body2" color="text.secondary" sx={{ 
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '200px'
+                      }}>
+                        {chat.last_message 
+                          ? `${chat.last_message.substring(0, 50)}${chat.last_message.length > 50 ? '...' : ''}`
+                          : 'No messages yet'}
+                      </Typography>
+                    }
+                  />
+                  {chat.last_message_time && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                      {new Date(chat.last_message_time).toLocaleDateString()}
+                    </Typography>
+                  )}
+                </ListItem>
+              ))}
+              {chats.length === 0 && (
+                <ListItem>
+                  <Typography variant="body1" color="text.secondary" sx={{ p: 3, textAlign: 'center', width: '100%' }}>
+                    No matches yet. Start swiping to find matches!
+                  </Typography>
+                </ListItem>
               )}
-            </ListItem>
-          ))}
-          {chats.length === 0 && (
-            <Typography variant="body1" color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-              No matches yet. Start swiping to find matches!
-            </Typography>
-          )}
-        </List>
-      </Container>
-    </Box>
+            </List>
+          </Paper>
+        </Container>
+      </Box>
+    </ThemeProvider>
   )
-} 
+}
+
