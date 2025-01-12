@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Box, CircularProgress, Typography } from '@mui/material'
 
@@ -17,6 +18,11 @@ interface MessageListProps {
 
 export default function MessageList({ messages, loading }: MessageListProps) {
   const { data: session } = useSession()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   if (loading) {
     return (
@@ -28,7 +34,7 @@ export default function MessageList({ messages, loading }: MessageListProps) {
 
   return (
     <Box sx={{ 
-      flexGrow: 1, 
+      height: '100%',
       overflowY: 'auto',
       p: 2,
       display: 'flex',
@@ -68,6 +74,7 @@ export default function MessageList({ messages, loading }: MessageListProps) {
           No messages yet. Start the conversation!
         </Typography>
       )}
+      <div ref={messagesEndRef} />
     </Box>
   )
 } 

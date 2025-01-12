@@ -9,6 +9,11 @@ interface Message {
   created_at: string
 }
 
+interface MatchDetails {
+  user_1_id: string
+  user_2_id: string
+}
+
 export function useChat(matchId: string) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +43,7 @@ export function useChat(matchId: string) {
 
     loadMessages()
 
-    // Subscribe to new messages
+    // Subscribe to new messages and unread updates
     const subscription = supabase
       .channel(`chat:${matchId}`)
       .on(
@@ -50,7 +55,18 @@ export function useChat(matchId: string) {
           filter: `match_id=eq.${matchId}`
         },
         (payload) => {
-          setMessages(current => [...current, payload.new as Message])
+          const newMessage = payload.new as Message
+          console.log('New message received:', {
+            message: newMessage,
+            isFromCurrentUser: newMessage.sender_id === session?.user?.id
+          })
+          setMessages(current => [...current, newMessage])
+
+          // If the message is from the other user, update unread count
+          if (newMessage.sender_id !== session?.user?.id) {
+            console.log('Message is from other user, reloading messages')
+            loadMessages()
+          }
         }
       )
       .subscribe()
@@ -60,11 +76,42 @@ export function useChat(matchId: string) {
     }
   }, [matchId, session?.user?.id])
 
+  const updateUnreadCount = async (recipientId: string) => {
+    try {
+      // Simply create a new unread_messages entry
+      await supabase
+        .from('unread_messages')
+        .insert({
+          user_id: recipientId,
+          match_id: matchId,
+          unread_count: 1,
+          last_message_time: new Date().toISOString()
+        })
+    } catch (error) {
+      console.error('Error creating unread message entry:', error)
+    }
+  }
+
   const sendMessage = async (message: string) => {
     if (!session?.user?.id) return
 
     try {
-      const { error } = await supabase
+      // Get match details to determine recipient
+      const { data: match, error: matchError } = await supabase
+        .from('matches')
+        .select('user_1_id, user_2_id')
+        .eq('id', matchId)
+        .single()
+
+      if (matchError) throw matchError
+
+      // Determine recipient
+      const recipientId = match.user_1_id === session.user.id 
+        ? match.user_2_id 
+        : match.user_1_id
+
+      // Insert the message
+      const { error: messageError } = await supabase
         .from('chats')
         .insert({
           match_id: matchId,
@@ -72,7 +119,11 @@ export function useChat(matchId: string) {
           message
         })
 
-      if (error) throw error
+      if (messageError) throw messageError
+
+      // Update unread count for recipient
+      await updateUnreadCount(recipientId)
+
     } catch (error) {
       console.error('Error sending message:', error)
     }

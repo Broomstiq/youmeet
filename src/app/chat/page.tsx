@@ -16,7 +16,8 @@ import {
   Typography,
   Box,
   Container,
-  CircularProgress
+  CircularProgress,
+  Badge
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
@@ -26,6 +27,7 @@ interface ChatPreview {
   partner_profile_picture?: string
   last_message?: string
   last_message_time?: string
+  unread_count: number
 }
 
 interface UserData {
@@ -43,6 +45,7 @@ interface Match {
     message: string
     created_at: string
   }>
+  created_at: string
 }
 
 export default function ChatDashboard() {
@@ -77,40 +80,57 @@ export default function ChatDashboard() {
             chats(
               message,
               created_at
-            )
+            ),
+            created_at
           `)
           .or(`user_1_id.eq.${session.user.id},user_2_id.eq.${session.user.id}`)
           .order('created_at', { ascending: false }) as { data: Match[] | null, error: any }
-
-        console.log('Raw matches data:', matches) // Debug log
 
         if (supabaseError) {
           throw supabaseError
         }
 
         if (matches) {
-          const chatPreviews: ChatPreview[] = matches.map(match => {
-            console.log('Match:', match)
+          const chatPreviews: ChatPreview[] = await Promise.all(matches.map(async match => {
             const isUser1 = match.user_1_id === session.user.id
             const partnerData = isUser1 ? match.user2 : match.user1
+            
+            const latestMessage = match.chats?.sort((a, b) => 
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )[0]
 
-            console.log('Processing match:', {
+            // Fetch unread count
+            const { data: unreadData, error: unreadError } = await supabase
+              .from('unread_messages')
+              .select('unread_count')
+              .eq('user_id', session.user.id)
+              .eq('match_id', match.id)
+              .maybeSingle()
+
+            console.log('Fetched unread count:', {
               matchId: match.id,
-              user1Data: match.user1,
-              user2Data: match.user2,
-              partnerData
+              unreadData,
+              unreadError,
+              userId: session.user.id
             })
 
             return {
               match_id: match.id,
               partner_name: partnerData?.name || 'Unknown',
               partner_profile_picture: partnerData?.profile_picture,
-              last_message: match.chats?.[0]?.message,
-              last_message_time: match.chats?.[0]?.created_at
+              last_message: latestMessage?.message,
+              last_message_time: latestMessage?.created_at,
+              unread_count: unreadData?.unread_count || 0
             }
+          }))
+
+          const sortedChats = chatPreviews.sort((a, b) => {
+            const timeA = a.last_message_time ? new Date(a.last_message_time).getTime() : 0
+            const timeB = b.last_message_time ? new Date(b.last_message_time).getTime() : 0
+            return timeB - timeA
           })
 
-          setChats(chatPreviews)
+          setChats(sortedChats)
         }
       } catch (error) {
         console.error('Error loading chats:', error)
@@ -122,7 +142,6 @@ export default function ChatDashboard() {
 
     loadChats()
 
-    // Subscribe to new messages
     const subscription = supabase
       .channel('chat_updates')
       .on(
@@ -220,12 +239,14 @@ export default function ChatDashboard() {
               divider
             >
               <ListItemAvatar>
-                <Avatar 
-                  src={chat.partner_profile_picture}
-                  alt={chat.partner_name}
-                >
-                  {!chat.partner_profile_picture && (chat.partner_name[0]?.toUpperCase() || '?')}
-                </Avatar>
+                <Badge badgeContent={chat.unread_count} color="error">
+                  <Avatar 
+                    src={chat.partner_profile_picture}
+                    alt={chat.partner_name}
+                  >
+                    {!chat.partner_profile_picture && (chat.partner_name[0]?.toUpperCase() || '?')}
+                  </Avatar>
+                </Badge>
               </ListItemAvatar>
               <ListItemText
                 primary={chat.partner_name}
