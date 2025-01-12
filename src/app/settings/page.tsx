@@ -45,29 +45,37 @@ export default function Settings() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
+      return;
     }
 
     const fetchUserData = async () => {
-      if (session?.user?.id) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        if (session?.user?.id) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (error) {
-          console.error('Error fetching user data:', error);
-          return;
+          if (error) {
+            console.error('Error fetching user data:', error);
+            setMessage({ type: 'error', text: 'Failed to load user data' });
+            return;
+          }
+
+          setUser(userData);
+          setEditData({
+            city: userData.city || '',
+            profile_picture: userData.profile_picture || '',
+            matching_param: userData.matching_param
+          });
         }
-
-        setUser(userData);
-        setEditData({
-          city: userData.city || '',
-          profile_picture: userData.profile_picture || '',
-          matching_param: userData.matching_param
-        });
+      } catch (error) {
+        console.error('Error in fetchUserData:', error);
+        setMessage({ type: 'error', text: 'Failed to load user data' });
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUserData();

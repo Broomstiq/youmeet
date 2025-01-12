@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { auth } from '@/auth';
 import { sendPasswordResetEmail } from '@/lib/email-service';
 import crypto from 'crypto';
 
@@ -16,33 +17,22 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database
-    const { data: user, error: userError } = await supabase
+    // Get user's email from database
+    const { data: user } = await supabase
       .from('users')
-      .select('id, email')
-      .eq('email', email)
+      .select('email')
+      .eq('id', session.user.id)
       .single();
 
-    if (userError || !user) {
-      // Don't reveal if user exists or not for security
-      return NextResponse.json({ 
-        success: true,
-        message: 'If an account exists with this email, a password reset link will be sent.'
-      });
+    if (!user?.email) {
+      return NextResponse.json({ error: 'User email not found' }, { status: 404 });
     }
-
-    // First, invalidate any existing unused tokens for this user
-    await supabase
-      .from('password_resets')
-      .update({ used: true })
-      .eq('user_id', user.id)
-      .eq('used', false);
 
     // Generate a secure reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -51,17 +41,14 @@ export async function POST(request: Request) {
     // Store the reset token in Supabase
     const { error: tokenError } = await supabase
       .from('password_resets')
-      .insert({
-        user_id: user.id,
+      .upsert({
+        user_id: session.user.id,
         token: resetToken,
         expires_at: tokenExpiry.toISOString(),
         used: false
       });
 
-    if (tokenError) {
-      console.error('Error storing reset token:', tokenError);
-      throw tokenError;
-    }
+    if (tokenError) throw tokenError;
 
     // Generate reset link with token
     const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
@@ -71,7 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true,
-      message: 'If an account exists with this email, a password reset link will be sent.'
+      message: 'Password reset email sent successfully'
     });
 
   } catch (error: any) {
