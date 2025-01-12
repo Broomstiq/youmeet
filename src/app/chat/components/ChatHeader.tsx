@@ -17,10 +17,13 @@ import {
   List,
   ListItem,
   ListItemText,
-  Button
+  Button,
+  DialogActions,
+  DialogContentText
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import InfoIcon from '@mui/icons-material/Info'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 interface ChatHeaderProps {
   matchId: string
@@ -54,6 +57,7 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
   const [partnerInfo, setPartnerInfo] = useState<MatchDetails['user1'] | null>(null)
   const [commonSubs, setCommonSubs] = useState<Array<{ channel_name: string }>>([])
   const [showProfile, setShowProfile] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -141,6 +145,42 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
     return age
   }
 
+  const handleDeleteMatch = async () => {
+    if (!session?.user?.id) return
+
+    try {
+      // Delete chats first (due to foreign key constraint)
+      const { error: chatsError } = await supabase
+        .from('chats')
+        .delete()
+        .eq('match_id', matchId)
+
+      if (chatsError) throw chatsError
+
+      // Delete unread messages
+      const { error: unreadError } = await supabase
+        .from('unread_messages')
+        .delete()
+        .eq('match_id', matchId)
+
+      if (unreadError) throw unreadError
+
+      // Delete the match
+      const { error: matchError } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId)
+
+      if (matchError) throw matchError
+
+      // Redirect to chat dashboard
+      router.push('/chat')
+    } catch (error) {
+      console.error('Error deleting match:', error)
+      // You might want to show an error message to the user here
+    }
+  }
+
   return (
     <>
       <AppBar position="static">
@@ -168,6 +208,13 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
 
           <IconButton color="inherit" onClick={() => setShowProfile(true)}>
             <InfoIcon />
+          </IconButton>
+          <IconButton 
+            color="inherit" 
+            onClick={() => setShowDeleteConfirm(true)}
+            sx={{ ml: 1 }}
+          >
+            <DeleteIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -214,6 +261,30 @@ export default function ChatHeader({ matchId }: ChatHeaderProps) {
             ))}
           </List>
         </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+      >
+        <DialogTitle>Delete Match</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this match? This will permanently remove all messages and cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowDeleteConfirm(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteMatch} 
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   )
