@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useSession } from 'next-auth/react'
+import { supabase } from '@/lib/supabase'
 
-export interface Message {
+interface Message {
   id: string
-  match_id: string
   sender_id: string
   message: string
   created_at: string
@@ -17,17 +16,27 @@ export function useChat(matchId: string) {
 
   useEffect(() => {
     const loadMessages = async () => {
-      const { data } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('match_id', matchId)
-        .order('created_at', { ascending: true })
+      if (!session?.user?.id) return
 
-      if (data) {
-        setMessages(data)
+      try {
+        setLoading(true)
+        // Fetch existing messages
+        const { data, error } = await supabase
+          .from('chats')
+          .select('*')
+          .eq('match_id', matchId)
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+        setMessages(data || [])
+      } catch (error) {
+        console.error('Error loading messages:', error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
+
+    loadMessages()
 
     // Subscribe to new messages
     const subscription = supabase
@@ -40,45 +49,31 @@ export function useChat(matchId: string) {
           table: 'chats',
           filter: `match_id=eq.${matchId}`
         },
-        async (payload) => {
-          const newMessage = payload.new as Message
-          setMessages(current => [...current, newMessage])
+        (payload) => {
+          setMessages(current => [...current, payload.new as Message])
         }
       )
       .subscribe()
 
-    loadMessages()
-
     return () => {
       subscription.unsubscribe()
     }
-  }, [matchId])
+  }, [matchId, session?.user?.id])
 
   const sendMessage = async (message: string) => {
     if (!session?.user?.id) return
 
-    const { data: matchData } = await supabase
-      .from('matches')
-      .select('id')
-      .eq('id', matchId)
-      .single()
+    try {
+      const { error } = await supabase
+        .from('chats')
+        .insert({
+          match_id: matchId,
+          sender_id: session.user.id,
+          message
+        })
 
-    if (!matchData) {
-      console.error('Invalid match')
-      return
-    }
-
-    const newMessage = {
-      match_id: matchId,
-      sender_id: session.user.id,
-      message
-    }
-
-    const { error } = await supabase
-      .from('chats')
-      .insert(newMessage)
-
-    if (error) {
+      if (error) throw error
+    } catch (error) {
       console.error('Error sending message:', error)
     }
   }

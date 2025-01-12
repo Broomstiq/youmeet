@@ -1,43 +1,73 @@
-import { Message } from '@/hooks/useChat'
-import { useSession } from 'next-auth/react'
+'use client'
 
-interface Props {
+import { useSession } from 'next-auth/react'
+import { Box, CircularProgress, Typography } from '@mui/material'
+
+interface Message {
+  id: string
+  sender_id: string
+  message: string
+  created_at: string
+}
+
+interface MessageListProps {
   messages: Message[]
   loading: boolean
 }
 
-export default function MessageList({ messages, loading }: Props) {
+export default function MessageList({ messages, loading }: MessageListProps) {
   const { data: session } = useSession()
 
   if (loading) {
-    return <div className="flex-1 p-4">Loading messages...</div>
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
-      {messages.map((message) => (
-        <div
-          key={message.id}
-          className={`mb-4 max-w-[70%] ${
-            message.sender_id === session?.user?.id
-              ? 'ml-auto'
-              : 'mr-auto'
-          }`}
-        >
-          <div
-            className={`p-3 rounded-lg ${
-              message.sender_id === session?.user?.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200'
-            }`}
+    <Box sx={{ 
+      flexGrow: 1, 
+      overflowY: 'auto',
+      p: 2,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 1
+    }}>
+      {messages.map((message) => {
+        const isOwnMessage = message.sender_id === session?.user?.id
+
+        return (
+          <Box
+            key={message.id}
+            sx={{
+              alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
+              backgroundColor: isOwnMessage ? 'primary.main' : 'grey.200',
+              color: isOwnMessage ? 'white' : 'text.primary',
+              borderRadius: 2,
+              p: 1,
+              maxWidth: '70%'
+            }}
           >
-            {message.message}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {new Date(message.created_at).toLocaleTimeString()}
-          </div>
-        </div>
-      ))}
-    </div>
+            <Typography variant="body1">
+              {message.message}
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.7 }}>
+              {new Date(message.created_at).toLocaleTimeString()}
+            </Typography>
+          </Box>
+        )
+      })}
+      {messages.length === 0 && (
+        <Typography 
+          variant="body1" 
+          color="text.secondary" 
+          sx={{ textAlign: 'center', mt: 2 }}
+        >
+          No messages yet. Start the conversation!
+        </Typography>
+      )}
+    </Box>
   )
 } 

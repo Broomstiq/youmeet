@@ -1,35 +1,51 @@
+'use client'
+
 import { useState } from 'react'
-import { IconButton, TextField } from '@mui/material'
+import { Box, TextField, IconButton } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
 
-interface Props {
-  onSend: (message: string) => Promise<void>
+interface MessageInputProps {
+  onSend: (message: string) => void
 }
 
-export default function MessageInput({ onSend }: Props) {
+export default function MessageInput({ onSend }: MessageInputProps) {
   const [message, setMessage] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim()) return
-
-    await onSend(message)
-    setMessage('')
+    if (message.trim()) {
+      onSend(message.trim())
+      setMessage('')
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        p: 2,
+        borderTop: 1,
+        borderColor: 'divider',
+        display: 'flex',
+        gap: 1
+      }}
+    >
       <TextField
         fullWidth
+        variant="outlined"
+        placeholder="Type a message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type a message..."
-        variant="outlined"
         size="small"
       />
-      <IconButton type="submit" color="primary">
+      <IconButton 
+        color="primary" 
+        type="submit"
+        disabled={!message.trim()}
+      >
         <SendIcon />
       </IconButton>
-    </form>
+    </Box>
   )
 } 
