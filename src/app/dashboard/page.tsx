@@ -16,6 +16,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { createClient } from '@supabase/supabase-js';
 import SwipeContainer from '../../components/SwipeContainer';
+import ChatIcon from '@mui/icons-material/Chat'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,6 +66,9 @@ export default function Dashboard() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             YouMeet
           </Typography>
+          <IconButton color="inherit" onClick={() => router.push('/chat')}>
+            <ChatIcon />
+          </IconButton>
           <IconButton color="inherit" onClick={() => router.push('/settings')}>
             <SettingsIcon />
           </IconButton>
