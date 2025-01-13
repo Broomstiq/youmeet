@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+
+// Explicitly set the runtime to edge
+export const runtime = 'edge';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -28,9 +30,9 @@ export async function middleware(request: NextRequest) {
   const isApiPath = path.startsWith('/api/');
 
   try {
-    // Use getToken instead of NextAuth().auth()
-    const token = await getToken({ req: request });
-    const isAuthenticated = !!token;
+    // Check for session token in cookies
+    const sessionToken = request.cookies.get('next-auth.session-token')?.value;
+    const isAuthenticated = !!sessionToken;
 
     // Handle API paths
     if (!isPublicPath && !isAuthenticated && isApiPath) {
