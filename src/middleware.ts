@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 
 // Define which paths should be handled by Node.js runtime
 const nodeJsPaths = ['/api/'];
+export const runtime = 'nodejs';
+
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
