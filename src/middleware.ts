@@ -1,7 +1,6 @@
-import NextAuth from 'next-auth';
-import { authConfig } from './auth.config';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -29,9 +28,9 @@ export async function middleware(request: NextRequest) {
   const isApiPath = path.startsWith('/api/');
 
   try {
-    // Use the new auth() function
-    const auth = await NextAuth(authConfig).auth();
-    const isAuthenticated = !!auth?.user;
+    // Use getToken instead of NextAuth().auth()
+    const token = await getToken({ req: request });
+    const isAuthenticated = !!token;
 
     // Handle API paths
     if (!isPublicPath && !isAuthenticated && isApiPath) {
