@@ -6,11 +6,23 @@
       "use": "@vercel/node@latest",
       "config": {
         "installCommand": "npm install --legacy-peer-deps",
-        "nodeVersion": "18.17.0"
+        "nodeVersion": "18.20.4"
       }
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=0"
+        }
+      ]
+    }
+  ],
+  "regions": ["iad1"]
 } 
