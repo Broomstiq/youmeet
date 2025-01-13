@@ -1,52 +1,41 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Explicitly set the runtime to edge
-export const runtime = 'edge';
+// Define which paths should be handled by Node.js runtime
+const nodeJsPaths = ['/api/'];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const isRootPath = path === '/';
+  
+  // Skip middleware for paths that require Node.js
+  if (nodeJsPaths.some(prefix => path.startsWith(prefix))) {
+    return NextResponse.next();
+  }
 
-  // Redirect root path to signin
+  const isRootPath = path === '/';
+  
+  // Handle static paths and basic auth checks in Edge
   if (isRootPath) {
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
-  // Keep the list of public paths
   const isPublicPath = path === '/auth/signin' || 
                       path === '/auth/signup' || 
                       path === '/auth/forgot-password' ||
                       path === '/auth/reset-password' ||
                       path === '/youmeet_logo.svg' ||
-                      path.startsWith('/api/auth/') ||
-                      path.startsWith('/api/user/reset-password') ||
-                      path.startsWith('/api/user/update-password') ||
-                      path.startsWith('/api/prematch/test') || 
-                      path.startsWith('/api/prematch/check') || 
-                      path.startsWith('/api/prematch/calculate') || 
                       path.startsWith('/callback');
 
-  const isApiPath = path.startsWith('/api/');
-
   try {
-    // Check for session token in cookies
     const sessionToken = request.cookies.get('next-auth.session-token')?.value;
     const isAuthenticated = !!sessionToken;
 
-    // Handle API paths
-    if (!isPublicPath && !isAuthenticated && isApiPath) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Handle protected routes
     if (!isPublicPath && !isAuthenticated) {
       const redirectUrl = new URL('/auth/signin', request.url);
       redirectUrl.searchParams.set('callbackUrl', path);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Handle auth pages when user is logged in
     if ((path === '/auth/signin' || path === '/auth/signup') && isAuthenticated) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
@@ -60,7 +49,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',  // Add root path to matcher
+    '/',
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }; 
