@@ -7,6 +7,12 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = !!token;
   const isOnAuthPage = request.nextUrl.pathname.startsWith('/auth');
   const isOnboardingPage = request.nextUrl.pathname.startsWith('/onboarding');
+  const isRootPath = request.nextUrl.pathname === '/';
+
+  // Redirect root path to signin
+  if (isRootPath) {
+    return NextResponse.redirect(new URL('/auth/signin', request.url));
+  }
 
   // Allow access to onboarding for logged-in users who need it
   if (isOnboardingPage && isLoggedIn) {
@@ -35,6 +41,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/((?!api|_next/static|_next/image|.*\\.png$|favicon.ico).*)',
   ],
 }; 
