@@ -43,7 +43,7 @@ export default function SignIn() {
         password,
         redirect: false,
       });
-
+      
       if (result?.error) {
         setError(result.error);
       } else {

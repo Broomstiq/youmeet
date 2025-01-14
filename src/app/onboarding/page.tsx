@@ -11,11 +11,11 @@ const supabase = createClient(
 );
 
 interface PageProps {
-  searchParams: { 
+  searchParams: Promise<{
     step?: string; 
     code?: string;
     error?: string;
-  };
+  }>;
 }
 
 async function OnboardingContent({ searchParams }: PageProps) {
@@ -35,12 +35,13 @@ async function OnboardingContent({ searchParams }: PageProps) {
     redirect('/dashboard');
   }
 
-  const currentStep = searchParams?.step || 'profile';
+  const resolvedSearchParams = await searchParams;
+  const currentStep = resolvedSearchParams?.step || 'profile';
   const step = user && !user.youtube_connected && currentStep === 'profile' 
     ? 'youtube' 
     : currentStep;
 
-  const error = searchParams?.error;
+  const error = resolvedSearchParams?.error;
 
   return (
     <OnboardingClient 
